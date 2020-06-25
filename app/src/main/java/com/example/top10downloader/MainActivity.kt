@@ -13,6 +13,23 @@ import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
 
+class FeedEntry {
+    var name: String = ""
+    var artist: String = ""
+    var releaseDate: String = ""
+    var summary: String = ""
+    var imageURL: String = ""
+
+    override fun toString(): String {
+        return """
+            name = $name
+            artist = $artist
+            releaseDate = $releaseDate
+            imageURL = $imageURL
+        """.trimIndent()
+    }
+}
+
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
 
@@ -39,46 +56,14 @@ class MainActivity : AppCompatActivity() {
                 return rssFeed
             }
     
-            override fun onPostExecute(result: String?) {
-                Log.d(TAG, "onPostExecute(result: $result) called")
+            override fun onPostExecute(result: String) {
                 super.onPostExecute(result)
+                val parseApplications = ParseApplications()
+                parseApplications.parse(result)
             }
 
             private fun downloadXML(urlPath: String?): String {
-                val xmlResult = StringBuilder()
-
-                try {
-                    val url = URL(urlPath)
-                    val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
-                    val response = connection.responseCode
-                    Log.d(TAG, "downloadXML - The response code: $response")
-
-                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
-
-                    val buffer = CharArray(500)
-                    var charsRead = 0
-                    while (charsRead >= 0) {
-                        charsRead = reader.read(buffer)
-                        if (charsRead > 0) {
-                            xmlResult.append(String(buffer, 0, charsRead))
-                        }
-                    }
-                    reader.close()
-
-                    Log.d(TAG, "Received ${xmlResult.length} bytes")
-                    return xmlResult.toString()
-
-                } catch (e: MalformedURLException) {
-                    Log.e(TAG, "downloadXML - Invalid URL ${e.message}")
-                } catch (e: IOException) {
-                    Log.e(TAG, "downloadXML - IO Exception reading data: ${e.message} ")
-                } catch (e: SecurityException) {
-                    Log.e(TAG, "downloadXML: Security Exception. Needs permission? ${e.message}")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Unknown error: ${e.message}")
-                }
-
-                return "" // If it gets to here, there's been a problem.
+                return URL(urlPath).readText()
             }
         }
     }
